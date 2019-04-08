@@ -18,6 +18,7 @@ namespace DRHIdentityServer
                         new Claim(JwtClaimTypes.Email, "scott@scottbrady91.com"),
                         new Claim(JwtClaimTypes.Role, "admin")
                     }
+
                 }
             };
         }

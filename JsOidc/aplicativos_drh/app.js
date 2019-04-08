@@ -2,7 +2,7 @@
 
 var clientPath = 'aplicativos_drh';
 var config = {
-    authority: "https://localhost:5001",
+    authority: "https://localhost:44358",
     client_id: "aplicativos_drh",
     redirect_uri: window.location.origin + "/" + clientPath + "/callback.html",
     post_logout_redirect_uri: window.location.origin + "/" + clientPath + "/index.html",
