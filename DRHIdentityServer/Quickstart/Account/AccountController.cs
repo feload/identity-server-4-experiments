@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
+using DRHIdentityServer.Models;
 using IdentityModel;
 using IdentityServer4.Events;
 using IdentityServer4.Extensions;
@@ -29,12 +30,12 @@ namespace IdentityServer4.Quickstart.UI
     [AllowAnonymous]
     public class AccountController : Controller
     {
-        private readonly UserManager<IdentityUser> _userManager;
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IEventService _events;
         private readonly AccountService _account;
+        private readonly IUserRepository _userRepository;
 
         public AccountController(
             IIdentityServerInteractionService interaction,
@@ -42,9 +43,9 @@ namespace IdentityServer4.Quickstart.UI
             IAuthenticationSchemeProvider schemeProvider,
             IHttpContextAccessor httpContextAccessor,
             IEventService events,
-            UserManager<IdentityUser> userManager)
+            IUserRepository userRepository)
         {
-            _userManager = userManager;
+            _userRepository = userRepository;
             _interaction = interaction;
             _clientStore = clientStore;
             _schemeProvider = schemeProvider;
@@ -93,12 +94,12 @@ namespace IdentityServer4.Quickstart.UI
 
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByNameAsync(model.Username);
+                var user = _userRepository.FindByUsername(model.Username);
 
-                if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+                if (user != null && _userRepository.ValidateCredentials(model.Username, model.Password))
                 {
                     await _events.RaiseAsync(
-                        new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName));
+                        new UserLoginSuccessEvent(user.UserName, user.SubjectId, user.UserName));
 
                     AuthenticationProperties props = null;
                     if (AccountOptions.AllowRememberLogin && model.RememberLogin)
@@ -110,7 +111,7 @@ namespace IdentityServer4.Quickstart.UI
                         };
                     };
 
-                    await HttpContext.SignInAsync(user.Id, user.UserName, props);
+                    await HttpContext.SignInAsync(user.SubjectId, user.UserName, props);
 
                     if (_interaction.IsValidReturnUrl(model.ReturnUrl)
                             || Url.IsLocalUrl(model.ReturnUrl))
