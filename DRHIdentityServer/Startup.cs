@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -22,34 +23,43 @@ namespace DRHIdentityServer
 {
     public class Startup
     {
-        // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+        private readonly IConfiguration configuraton;
+        public Startup(IConfiguration _config)
+        {
+            configuraton = _config;
+        }
+
         public void ConfigureServices(IServiceCollection services)
         {
-            string connectionString = "Server=127.0.0.1;Database=Identity;User Id=sa;Password=;MultipleActiveResultSets=true";
-            var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
-            services.AddSession(options => options.Cookie.SameSite = SameSiteMode.None);
+                        
+            string BDTConnection = configuraton.GetConnectionString("BDTConnection");
+            services.AddDbContext<BDTContext>(options => options.UseSqlServer(BDTConnection));
+            services.AddTransient<DbContext, BDTContext>();
 
             ILoggerFactory _loggerFactory = new LoggerFactory();
-            var cors = new DefaultCorsPolicyService(_loggerFactory.CreateLogger<DefaultCorsPolicyService>())
-            {
-                AllowedOrigins = { "http://127.0.0.1:5500" }
-                            };
+            var cors = new DefaultCorsPolicyService(_loggerFactory.CreateLogger<DefaultCorsPolicyService>()) {
+                AllowedOrigins = {
+                    "http://127.0.0.1:5500"
+                }
+            };
             services.AddSingleton<ICorsPolicyService>(cors);
+            services.AddSession(options => options.Cookie.SameSite = SameSiteMode.None);
             
+            string identityConnection = configuraton.GetConnectionString("IdentityConnection");
+            var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
+
             services.AddMvc();
             services.AddDbContext<ApplicationDbContext>(builder =>
-                builder.UseSqlServer(connectionString, sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)));            
+                builder.UseSqlServer(identityConnection, sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)));            
             services
                 .AddIdentityServer()
                 .AddConfigurationStore(options =>
                     options.ConfigureDbContext = builder =>
-                        builder.UseSqlServer(connectionString, sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
-                //.AddAspNetIdentity<IdentityUser>()
+                        builder.UseSqlServer(identityConnection, sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
                 .AddDeveloperSigningCredential()
                 .AddOperationalStore(options =>
                     options.ConfigureDbContext = builder =>
-                    builder.UseSqlServer(connectionString, sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
+                    builder.UseSqlServer(identityConnection, sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
                 .AddCustomUserStore();
         }
 

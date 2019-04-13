@@ -94,12 +94,12 @@ namespace IdentityServer4.Quickstart.UI
 
             if (ModelState.IsValid)
             {
-                var user = _userRepository.FindByUsername(model.Username);
+                var user = _userRepository.FindByCorreo(model.Username);
 
                 if (user != null && _userRepository.ValidateCredentials(model.Username, model.Password))
                 {
                     await _events.RaiseAsync(
-                        new UserLoginSuccessEvent(user.UserName, user.SubjectId, user.UserName));
+                        new UserLoginSuccessEvent(user.correo, user.id.ToString(), user.correo));
 
                     AuthenticationProperties props = null;
                     if (AccountOptions.AllowRememberLogin && model.RememberLogin)
@@ -111,7 +111,7 @@ namespace IdentityServer4.Quickstart.UI
                         };
                     };
 
-                    await HttpContext.SignInAsync(user.SubjectId, user.UserName, props);
+                    await HttpContext.SignInAsync(user.id.ToString(), user.correo, props);
 
                     if (_interaction.IsValidReturnUrl(model.ReturnUrl)
                             || Url.IsLocalUrl(model.ReturnUrl))

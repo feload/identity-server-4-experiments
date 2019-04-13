@@ -7,8 +7,8 @@ namespace DRHIdentityServer.Models
 {
     public interface IUserRepository
     {
-        bool ValidateCredentials(string username, string password);
-        CustomUser FindBySubjectId(string subjectId);
-        CustomUser FindByUsername(string username);
+        bool ValidateCredentials(string correo, string password);
+        Usuario FindBySubjectId(string subjectId);
+        Usuario FindByCorreo(string correo);
     }
 }

@@ -21,8 +21,8 @@ namespace DRHIdentityServer.Validator
         {
             if (_userRepository.ValidateCredentials(context.UserName, context.Password))
             {
-                var user = _userRepository.FindByUsername(context.UserName);
-                context.Result = new GrantValidationResult(user.SubjectId, OidcConstants.AuthenticationMethods.Password);
+                var user = _userRepository.FindByCorreo(context.UserName);
+                context.Result = new GrantValidationResult(user.id.ToString(), OidcConstants.AuthenticationMethods.Password);
             }
 
             return Task.FromResult(0);

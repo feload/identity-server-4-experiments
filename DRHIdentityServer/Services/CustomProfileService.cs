@@ -41,8 +41,8 @@ namespace DRHIdentityServer.Services
             {
                 new Claim("role", "dataEventRecords.admin"),
                 new Claim("role", "dataEventRecords.user"),
-                new Claim("username", user.UserName),
-                new Claim("subjectid", user.SubjectId)
+                new Claim("username", user.correo),
+                new Claim("subjectid", user.id.ToString())
             };
 
             context.IssuedClaims = claims;
